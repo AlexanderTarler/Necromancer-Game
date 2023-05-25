@@ -6,8 +6,11 @@ public class MinionMovement : MonoBehaviour
     public Transform playerTarget;
     public Transform minionGFX;
 
+    public MinionCombat combat;
+
     public float followRange = 5f;
-    public float speed = 100f;
+    private float speed = 100f;
+    public float defaultSpeed = 100f;
     public float nextWaypointDistance = 3f;
 
     public float obstacleAvoidanceTime = 1.5f;
@@ -37,7 +40,7 @@ public class MinionMovement : MonoBehaviour
         seeker = GetComponent<Seeker>();
         rb = GetComponent<Rigidbody2D>();
 
-        InvokeRepeating("UpdatePath", 0f, 0.5f);
+        InvokeRepeating("UpdatePath", 0f, 0.1f);
     }
 
     private void UpdatePath()
@@ -46,6 +49,7 @@ public class MinionMovement : MonoBehaviour
         {
             seeker.StartPath(rb.position, playerTarget.position, OnPathComplete);
             reachedEndOfPath = false; // Reset the flag
+            Debug.Log("Reached end of path");
         }
     }
 
@@ -64,12 +68,18 @@ public class MinionMovement : MonoBehaviour
     private void Update()
     {
 
-        Debug.Log(isCharging);
-        if (!IsPlayerInRange() || isCharging)
+        if(combat.isAttacking) 
+        {
+            speed = 0f;
+        } else {
+            speed = defaultSpeed;
+        }
+
+        /* if (!IsPlayerInRange() || isCharging)
     {
         rb.velocity = Vector2.zero;
         return;
-    }
+    } */
 
         if (path == null || reachedEndOfPath)
         {

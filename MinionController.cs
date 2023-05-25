@@ -18,8 +18,8 @@ public class MinionController : MonoBehaviour
             {
                 minion.SetTargetPosition(targetPosition);
                 minion.IsReturning = false;
-                minion.GetComponent<MinionAggro>().enabled = false;
-                minion.GetComponent<MinionCombat>().enabled = false;
+                // minion.GetComponent<MinionAggro>().enabled = false;
+                // minion.GetComponent<MinionCombat>().enabled = false;
                 minion.enabled = true;
             }
         }

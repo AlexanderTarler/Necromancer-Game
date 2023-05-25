@@ -11,6 +11,8 @@ public class MinionAggro : MonoBehaviour
     private float chargeRange = 10.0f; // The range at which the Minion starts charging
     [SerializeField]
     private float attackRange = 2.0f; // The range at which the Minion can attack
+    [SerializeField]
+    public float minDistanceToPlayer = 5.0f; // Minimum distance from the player
 
     private bool isCharging = false;
     private bool isAttackCooldown = false;
@@ -20,10 +22,15 @@ public class MinionAggro : MonoBehaviour
     public Transform[] enemyTargets; // Array of enemy targets
     public Transform playerTarget; // Reference to the player target
     private Transform currentEnemy;
-    private int currentEnemyIndex = 0;
+    public int currentEnemyIndex = 0;
 
     private void Update()
     {
+        if(combat.isAttacking) 
+        {
+            return;
+        }
+
         if (!isCharging)
         {
             float distanceToPlayer = Vector3.Distance(playerTarget.position, transform.position);
@@ -40,7 +47,7 @@ public class MinionAggro : MonoBehaviour
             else if (currentEnemy != null)
             {
                 float distanceToEnemy = Vector3.Distance(currentEnemy.transform.position, transform.position);
-                if (distanceToEnemy <= chargeRange)
+                if (distanceToEnemy <= chargeRange && distanceToEnemy > minDistanceToPlayer)
                 {
                     if (distanceToEnemy < attackRange)
                     {
@@ -49,6 +56,18 @@ public class MinionAggro : MonoBehaviour
                     else
                     {
                         StartCharge(currentEnemy);
+                    }
+                }
+                else if (distanceToPlayer <= chargeRange)
+                {
+                    if (distanceToPlayer > minDistanceToPlayer)
+                    {
+                        StartCharge(playerTarget);
+                    }
+                    else
+                    {
+                        // Move towards the player instead of charging
+                        movement.SetTargetPosition(playerTarget.position);
                     }
                 }
             }
@@ -60,7 +79,15 @@ public class MinionAggro : MonoBehaviour
             }
             else if (distanceToPlayer <= chargeRange)
             {
-                StartCharge(playerTarget);
+                if (distanceToPlayer > minDistanceToPlayer)
+                {
+                    StartCharge(playerTarget);
+                }
+                else
+                {
+                    // Move towards the player instead of charging
+                    movement.SetTargetPosition(playerTarget.position);
+                }
             }
 
             UpdateCooldownTimer();
@@ -74,10 +101,18 @@ public class MinionAggro : MonoBehaviour
 
     private void StartCharge(Transform target)
     {
+        if(target.CompareTag("Enemy"))
+        {
         Debug.Log("Charging!");
         isCharging = true;
         movement.IsInRange = true;
         movement.SetTargetPosition(target.position); // Set the target position
+        }
+         else if(target.CompareTag("Player"))
+        {
+            Debug.Log("Following Player!");
+            movement.SetTargetPosition(target.position); // Set the target position
+        }
     }
 
     public void AttackEnemy()
@@ -93,7 +128,7 @@ public class MinionAggro : MonoBehaviour
         movement.IsInRange = false;
 
         // Start the attack cooldown timer
-        attackCooldownTimer = attackCooldownDuration;
+        attackCooldownTimer = attackCooldownDuration; 
 
         // Check if there are nearby enemies
         if (enemyTargets.Length > 0 && currentEnemyIndex < enemyTargets.Length)
